@@ -12,6 +12,7 @@ Date: 2021-10-09
 
 1. [Introduction](#introduction)
 2. [Materials](#materials)
+    1. [Operating Systems](operating-systems)
     1. [Disk Operation Speeds](#disk-pperation-speeds)
 3. [Prerequisites](#prerequisites)
     1. [SSH](#ssh)
@@ -60,6 +61,10 @@ _Notes_:
 That the Nvidia Jetson Nano was only $99.99 when I bought it, the same model with 4GB of RAM is now 169.99, there is a 2GB version on [Amazon](https://www.amazon.com/NVIDIA-Jetson-Nano-Developer-945-13541-0000-000/dp/B08J157LHH) for $59.00. Furthermore, I have decided to attach separate storage volumes (SSD) to each node, this is for two reasons: I would like to run a full media server on the cluster and ML/AI workloads are data intensive and read/write speeds on SD cards are not great. Both of these are completely optional.
 
 This brings the total cost to build this exact cluster at **$848.87**.
+
+### Operating Systems
+
+For this build, all of the Raspberry Pi's will be using `Ubuntu 20.04.3 LTS (Focal Fossa)`. Nvidia provides it's own image, `Ubuntu 18.04.6 LTS`, which can be found [here](https://developer.nvidia.com/jetson-nano-sd-card-image).
 
 ### Disk Operation Speeds  
 
