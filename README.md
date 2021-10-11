@@ -511,7 +511,7 @@ docker pull nvcr.io/nvidia/l4t-pytorch:r32.6.1-pth1.9-py3
 docker run -it --rm --runtime nvidia nvcr.io/nvidia/l4t-pytorch:r32.6.1-pth1.9-py3 python3 -c "import torch; print(torch.cuda.is_available());"
 ```
 
-If all works correctly you should see `True` printed out. 
+If all works correctly you should see `True` printed out. This just shows how to run a Docker image, it is trivial to create a Pod definition that will use this image (as shown above).  
 
 ### GAN
 
