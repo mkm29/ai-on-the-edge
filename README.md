@@ -8,6 +8,22 @@ Date: 2021-10-09
 
 ---
 
+# Table of contents
+
+- [Howto Guide: Home Kubernetes Cluster](#howto-guide-home-kubernetes-cluster)
+  - [Introduction](#introduction)
+  - [Materials](#materials)
+  - [Prerequisites](#prerequisites)
+  - [Mount Storage Volume](#mount-storage-volume)
+  - [Install K3s](#install-k3s)
+  - [Helm](#helm)
+  - [Workers](#workers)
+  - [Add Private Registry](#add-private-registry)
+  - [GPU Support](#gpu-support)
+  - [Assign Static IP](#assign-static-ip)  
+
+## Introduction  
+
 In this article we will be setting up a 5 node K3s cluster: one control plane, three workers (Raspberry Pis) and one GPU worker (Nvidia Jetson Nano) to enable GPU workloads such as Tensorflow. Let's get started.
 
 ## Materials
@@ -25,9 +41,34 @@ This is a pretty cost effective cluster (for the computational power at least), 
 * 1 x [NETGEAR Ethernet Switch](https://www.amazon.com/gp/product/B07PFYM5MZ) - $19.99
 * 1 x [Raspberry Pi Cluster Case](https://www.amazon.com/gp/product/B08FH3V6GV) - $84.99
 
-_Note_ that the Nvidia Jetson Nano was only $99.99 when I bought it, the same model with 4GB of RAM is now 169.99, there is a 2GB version on [Amazon](https://www.amazon.com/NVIDIA-Jetson-Nano-Developer-945-13541-0000-000/dp/B08J157LHH) for $59.00. 
+_Notes_:  
+
+That the Nvidia Jetson Nano was only $99.99 when I bought it, the same model with 4GB of RAM is now 169.99, there is a 2GB version on [Amazon](https://www.amazon.com/NVIDIA-Jetson-Nano-Developer-945-13541-0000-000/dp/B08J157LHH) for $59.00. Furthermore, I have decided to attach separate storage volumes (SSD) to each node, this is for two reasons: I would like to run a full media server on the cluster and ML/AI workloads are data intensive and read/write speeds on SD cards are not great. Both of these are completely optional.
 
 This brings the total cost to build this exact cluster at **$848.87**.
+
+### Disk Operation Speeds  
+
+You can determine the storage speeds using the `dd` command, as so:  
+
+**Read**:  
+
+```shell
+dd if=./speedTestFile of=/dev/zero bs=20M count=5 oflag=dsync # for SD card
+dd if=/mnt/storage/speedTestFile of=/dev/zero bs=20M count=5 oflag=dsync # for SSD
+```
+
+**Write**:  
+
+```shell
+dd if=/dev/zero of=./speedTestFile bs=20M count=5 oflag=direct # for SD card
+sudo dd if=/dev/zero of=/mnt/storage/speedTestFile bs=20M count=5 oflag=direct # for SSD
+```
+
+| Device  | Read (mb/s) | Write (mb/s) |
+|---------|-------------|--------------|
+| SD Card |    39.7     |    19.3      |
+|   SSD   |   280.0     |   221.0      |
 
 ## Prerequisites
 
@@ -131,25 +172,17 @@ exit 0
 
 Change permissions on above file: `sudo chmod 755 /etc/rc.local`. Finally reboot to take effect with `sudo reboot`.
 
-Rinse and repeat for all worker nodes. It is also advisable to do the same for communication among all the nodes (control planes and worker).
-
-# K3s Master
-
-* IPv4: `192.168.0.100`  
-* Domain: `cluster.smigula.io`  
-* User: `master`  
-* Password: `<PASSWD>`  
+Rinse and repeat for all worker nodes. It is also advisable to do the same for communication among all the nodes (control planes and worker). 
 
 ## Mount Storage Volume
 
-While we are booting off an SD card (class 10), they are notorious for slow read/write speeds to we are going to attach 500gb SSD drives to all of our nodes. 
+While we are booting off an SD card (class 10), we wish to leverage the higher read/write speeds on a USB mounted SSD drive for storing any data. This was how I automounted the drives to a stanard mount point on each node.  
 
 1. Make sure you format each drive with the `ext4` type.  
 2. Next create a folder on each node which will serve as the mount point at `/mnt/storage`
 3. Get the UUID of the device you want to automount: `blkid`
 4. Add the entry to `/etc/fstab`:  
   > `UUID=<MY_UUID> /mnt/storage ext4 defaults,auto,users,rw,nofail 0 0`
-
 
 ## Install K3s
 
@@ -161,7 +194,16 @@ curl -sfL https://get.k3s.io | INSTALL_KUBE_EXEC="--write-kubeconfig-mode 664 \
 
 _Note_: Here I add the `memory` label to each node, as this cluster will be comprised of 8gb, 4gb and 2gb nodes.  
 
-# Install Helm
+### K3s Master
+
+* IPv4: `192.168.0.100`  
+* Domain: `cluster.smigula.io`  
+* User: `master`  
+* Password: `<PASSWD>` 
+
+## Helm
+
+First install Helm on the control plane:  
 
 ```shell
 # define what Helm version and where to install:
@@ -178,7 +220,7 @@ sudo mv linux-arm64/helm $HELM_INSTALL_DIR/helm
 rm -rf linux-arm64 && rm helm-$HELM_VERSION-linux-arm64.tar.gz
 ```
 
-# Add Helm Repos
+### Add Helm Repos
 
 ```shell
 helm repo add stable https://charts.helm.sh/stable
@@ -187,7 +229,7 @@ helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
 helm repo add jetstack https://charts.jetstack.io
 ```
 
-# Install Dashboard
+### Install Dashboard
 
 ```shell
 # this is necessary to address https://github.com/rancher/k3s/issues/1126 for now:
@@ -205,7 +247,7 @@ helm install kdash stable/kubernetes-dashboard \
 watch kubectl get pods -l "app=kubernetes-dashboard,release=kdash"
 ```
 
-# Access Dashboard
+### Access Dashboard
 
 The dashboard is then available at: `https://localhost:10443/`. In order to login you must either grab the Kube config file or use a token. Since I would like to be able to issue remote `kubectl` and `helm` commands I will copy over the config file, as sp:
 
@@ -219,9 +261,9 @@ kubectl --insecure-skip-tls-verify --kubeconfig=./k3s-rpi.yaml port-forward \
     svc/kdash-kubernetes-dashboard 10443:443
 ```
 
-# Workers
+## Workers
 
-## Worker 1
+### Worker 1
 
 * IPv4: `192.168.0.101`  
 * Domain:  
@@ -298,31 +340,10 @@ iface eth0 inet static
   gateway 192.168.0.1
 ```
 
-
-
 ### Deploy K3s
 
-Download K3s and kubectl
-Start by downloading the K3s and kubectl ARM64 binaries and copy them to /usr/local/bin with execution permissions:
-
 ```shell
-sudo wget -c "https://github.com/k3s-io/k3s/releases/download/v1.19.7%2Bk3s1/k3s-arm64" -O /usr/local/bin/k3s ; chmod 755 /usr/local/bin/k3s
-sudo wget -c "https://dl.k8s.io/v1.20.0/kubernetes-client-linux-arm64.tar.gz" -O /usr/local/bin/kubectl ; chmod 755 /usr/local/bin/kubectl
-```
-
-We need to provide some configuration to K3s, first create the directory with: `mkdir -p /etc/rancher/k3s/`, and  then create the file `/etc/rancher/k3s/config.yaml` with these contents:
-
-```shell
-node-ip: 192.168.0.104
-server: https://192.168.0.100:6443
-token: <TOKEN>
-```
-
-
-### Install K3s
-
-```shell
-export TOKEN=K10513ec520ffb7ce3d94da39d5a26be5da9324769f035498595c9941d21bcfeb62::server:ed7aefd846db06468a6c78fb91d461d2
+export TOKEN=<TOKEN>
 curl -sfL https://get.k3s.io | K3S_URL=https://192.168.0.100:6443 K3S_TOKEN=$TOKEN \
   INSTALL_KUBE_EXEC="--node-label memory=medium --node-label=gpu=nvidia" sh -
 ```
