@@ -350,7 +350,7 @@ curl -sfL https://get.k3s.io | K3S_URL=https://192.168.0.100:6443 K3S_TOKEN=$TOK
 
 ### Configuration
 
-Consult the K3s [Advanced Options and Configuration Guide](https://rancher.com/docs/k3s/latest/en/advanced/#configuring-containerd); for this type of node we are specifically concerned with setting the container runtime to `nvidia-container-runtimenvidia-container-runtime`. First stop the `k3s-agent` service with `sudo systemctl stop k3s-agent`. Then create the file `/var/lib/rancher/k3s/agent/etc/containerd/config.toml.tmpl`, and add the following content:
+Consult the K3s [Advanced Options and Configuration Guide](https://rancher.com/docs/k3s/latest/en/advanced/#configuring-containerd); for this type of node we are specifically concerned with setting the container runtime to `nvidia-container-runtimenvidia-container-runtime`. First stop the `k3s-agent` service with `sudo systemctl stop k3s-agent`. Then create the file [/var/lib/rancher/k3s/agent/etc/containerd/config.toml.tmpl](scripts/containerd/containerd/config.toml.tmpl), and add the following content:
 
 ```shell
 [plugins.opt]
@@ -414,7 +414,7 @@ Now restart K3s with `sudo systemctl restart k3s-agent`.
 
 ### Test
 
-Nvidia created a Docker image that will test to make sure all devices are configured properly. Change into your home directoy, and copy over the denos: `cp -R /usr/local/cuda/samples .`. Next, create a Dockerfile to perform the `deviceQuery` test:
+Nvidia created a Docker image that will test to make sure all devices are configured properly. Change into your home directoy, and copy over the demos: `cp -R /usr/local/cuda/samples .`. Next, create a [Dockerfile.deviceQuery](tests/Dockerfile.deviceQuery) to perform the `deviceQuery` test:
 
 ```shell
 FROM nvcr.io/nvidia/l4t-base:r32.5.0
@@ -434,17 +434,18 @@ deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 10.2, CUDA Runtime Vers
 Result = PASS
 ```
 
-By default, K3s will use containerd to run containers so lets ensure that works properly (CUDA support). For this, we will create a simple bash script that uses `ctr` instead of `docker`:  
+By default, K3s will use containerd to run containers so lets ensure that works properly (CUDA support). For this, we will create a simple [bash script](tests/containerd/test_containerd_gpu.sh) that uses `ctr` instead of `docker`:  
 
 ```shell
 #!/bin/bash
+
 IMAGE=xift/jetson_devicequery:r32.5.0
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 ctr i pull docker.io/${IMAGE}
 ctr run --rm --gpus 0 --tty docker.io/${IMAGE} deviceQuery
 ```
 
-You should get the same result as above. The final, and real, test is to deploy a pod to the cluster (selecting only those nodes with the `gpu: nvidia` label). Create the following file, `pod_deviceQuery.yaml`:
+You should get the same result as above. The final, and real, test is to deploy a pod to the cluster (selecting only those nodes with the `gpu: nvidia` label). Create the following file, [pod_device_query.yaml](tests/pod_device_query.yaml):
 
 ```shell
 apiVersion: v1
@@ -464,6 +465,13 @@ Create this pod with `kubectl apply -f pod_deviceQuery.yaml`, once the image is 
 
 _Note_ you may also want to taint this node so that non-GPU workloads will not be scheduled.  
 
-### Tensorflow
+### Tensorflow/Pytorch
 
-Stay tuned!
+Luckily for us, Nvidia has build some Docker images specifically for ARM architecture - L4T. NVIDIA L4T is a Linux based software distribution for the NVIDIA Jetson embedded computing platform. On the node pull and run the image:  
+
+```shell
+docker pull nvcr.io/nvidia/l4t-pytorch:r32.6.1-pth1.9-py3
+docker run -it --rm --runtime nvidia nvcr.io/nvidia/l4t-pytorch:r32.6.1-pth1.9-py3 python3 -c "import torch; print(torch.cuda.is_available());"
+```
+
+If all works correctly you should see `True` printed out. That is not an actual application though, stand by and I will deploy a little GAN using PyTorch and Flask :)  
