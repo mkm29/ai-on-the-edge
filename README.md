@@ -15,7 +15,8 @@ Date: 2021-10-09
     1. [Operating Systems](operating-systems)
     1. [Disk Operation Speeds](#disk-pperation-speeds)
 3. [Prerequisites](#prerequisites)
-    1. [SSH](#ssh)
+    1. [Static IPs](#static-ips)
+    2. [SSH](#ssh)
 4. [Mount Storage Volume](#mount-storage-volume)
 5. [Install K3s](#install-k3s)
     1. [K3s Master](#k3s-master)
@@ -104,6 +105,23 @@ We are going to update our installation, so we have latest and greatest packages
 
 As cloud-init is present on this image we are going to edit also: `sudo nano /etc/cloud/cloud.cfg`. Change `preserve_hostname` to `true`. Reboot again.
 
+### Static IPs
+
+In order for our nodes in our cluster to properly communicate with each other, we need to set static IP addresses to each node. The easiest way of doing this (for a home cluster) is by adding this entry to `/etc/netplan/50-cloud-init.yaml`:  
+
+```shell
+network:
+    ethernets:
+        eth0:
+            dhcp4: no
+            addresses: [<STATIC_IP>/24]
+            gateway4: <GATEWAY_ADDRESS>
+            nameservers:
+              addresses: [8.8.8.8,8.8.4.4]
+    version: 2
+```
+
+_Note_ that this process differs for the Nvidia Jetson Nano, which can be found [below](#assign-static-ip).  
 ### SSH
 
 It is good practice to disable username/password SSH login, this is done by editing `sudo nano /etc/ssh/sshd_config`, as so:  
