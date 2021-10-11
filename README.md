@@ -8,19 +8,33 @@ Date: 2021-10-09
 
 ---
 
-# Table of contents
+## Table of contents
 
-- [Howto Guide: Home Kubernetes Cluster](#howto-guide-home-kubernetes-cluster)
-  - [Introduction](#introduction)
-  - [Materials](#materials)
-  - [Prerequisites](#prerequisites)
-  - [Mount Storage Volume](#mount-storage-volume)
-  - [Install K3s](#install-k3s)
-  - [Helm](#helm)
-  - [Workers](#workers)
-  - [Add Private Registry](#add-private-registry)
-  - [GPU Support](#gpu-support)
-  - [Assign Static IP](#assign-static-ip)  
+1. [Introduction](#introduction)
+    1. [Materials](#materials)
+    2. [Disk Operation Speeds](#disk-pperation-speeds)
+2. [Prerequisites](#prerequisites)
+    1. [SSH](#ssh)
+3. [Mount Storage Volume](#mount-storage-volume)
+4. [Install K3s](#install-k3s)
+    1. [K3s Master](#k3s-master)
+5. [Helm](#helm)
+    1. [Add Helm Repos](#add-helm-repos)
+    2. [Install Dashboard](#install-dashboard)
+    3. [Access Dashboard](#access-dashboard)
+6. [Workers](#workers)
+    1. [Worker 1](#worker-1)
+    2. [Install Agent](#install-agent)
+7. [Add Private Registry](#add-private-registry)
+8. [GPU Support](#gpu-support)
+    1. [Swap](#swap)
+    2. [Disable IPv6](#disable-ipv6)
+    3. [Assign Static IP](#assign-static-ip)
+    4. [Deploy K3s](#deploy-k3s)
+    5. [Container Configuration](#container-configuration)
+    6. [Test GPU Support](#test-gpu-support)
+    7. [PyTorch](#pytorch)
+    8. [GAN](#gan)
 
 ## Introduction  
 
@@ -272,7 +286,7 @@ kubectl --insecure-skip-tls-verify --kubeconfig=./k3s-rpi.yaml port-forward \
 
 **Token** can be found at `/var/lib/rancher/k3s/server/token` on the control plane.
 
-### Install
+### Install Agent
 
 ```shell
 curl -sfL https://get.k3s.io | K3S_URL=https://192.168.0.100:6443 K3S_TOKEN=<TOKEN> \
@@ -326,7 +340,7 @@ sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
 sudo sysctl -w net.ipv6.conf.lo.disable_ipv6=1
 ```
 
-## Assign Static IP
+### Assign Static IP
 
 1. Edit `sudo vi /etc/default/networking`  
 2. Set the parameter CONFIGURE_INTERFACES to no  
@@ -348,7 +362,7 @@ curl -sfL https://get.k3s.io | K3S_URL=https://192.168.0.100:6443 K3S_TOKEN=$TOK
   INSTALL_KUBE_EXEC="--node-label memory=medium --node-label=gpu=nvidia" sh -
 ```
 
-### Configuration
+### Container Configuration
 
 Consult the K3s [Advanced Options and Configuration Guide](https://rancher.com/docs/k3s/latest/en/advanced/#configuring-containerd); for this type of node we are specifically concerned with setting the container runtime to `nvidia-container-runtimenvidia-container-runtime`. First stop the `k3s-agent` service with `sudo systemctl stop k3s-agent`. Then create the file [/var/lib/rancher/k3s/agent/etc/containerd/config.toml.tmpl](scripts/containerd/containerd/config.toml.tmpl), and add the following content:
 
@@ -412,7 +426,7 @@ Consult the K3s [Advanced Options and Configuration Guide](https://rancher.com/d
 
 Now restart K3s with `sudo systemctl restart k3s-agent`.  
 
-### Test
+### Test GPU Support
 
 Nvidia created a Docker image that will test to make sure all devices are configured properly. Change into your home directoy, and copy over the demos: `cp -R /usr/local/cuda/samples .`. Next, create a [Dockerfile.deviceQuery](tests/Dockerfile.deviceQuery) to perform the `deviceQuery` test:
 
@@ -465,7 +479,7 @@ Create this pod with `kubectl apply -f pod_deviceQuery.yaml`, once the image is 
 
 _Note_ you may also want to taint this node so that non-GPU workloads will not be scheduled.  
 
-### Tensorflow/Pytorch
+### Pytorch
 
 Luckily for us, Nvidia has build some Docker images specifically for ARM architecture - L4T. NVIDIA L4T is a Linux based software distribution for the NVIDIA Jetson embedded computing platform. On the node pull and run the image:  
 
@@ -474,4 +488,8 @@ docker pull nvcr.io/nvidia/l4t-pytorch:r32.6.1-pth1.9-py3
 docker run -it --rm --runtime nvidia nvcr.io/nvidia/l4t-pytorch:r32.6.1-pth1.9-py3 python3 -c "import torch; print(torch.cuda.is_available());"
 ```
 
-If all works correctly you should see `True` printed out. That is not an actual application though, stand by and I will deploy a little GAN using PyTorch and Flask :)  
+If all works correctly you should see `True` printed out. 
+
+### GAN
+
+That is not an actual application though, stand by and I will deploy a little GAN application using PyTorch and Flask :)  
