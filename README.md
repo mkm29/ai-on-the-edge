@@ -22,13 +22,14 @@ Date: 2021-10-09
     1. [K3s Master](#k3s-master)
 6. [Helm](#helm)
     1. [Add Helm Repos](#add-helm-repos)
-    2. [Install Dashboard](#install-dashboard)
-    3. [Access Dashboard](#access-dashboard)
-7. [Workers](#workers)
+7. [Dashboard](#dashboard)
+    1. [Deploying the Dashboard](#deploying-the-dashboard)
+    2. [Access Dashboard](#access-dashboard)
+8. [Workers](#workers)
     1. [Worker 1](#worker-1)
     2. [Install Agent](#install-agent)
-8. [Add Private Registry](#add-private-registry)
-9. [GPU Support](#gpu-support)
+9. [Add Private Registry](#add-private-registry)
+10. [GPU Support](#gpu-support)
     1. [Swap](#swap)
     2. [Disable IPv6](#disable-ipv6)
     3. [Assign Static IP](#assign-static-ip)
@@ -121,7 +122,22 @@ network:
     version: 2
 ```
 
-_Note_ that this process differs for the Nvidia Jetson Nano, which can be found [below](#assign-static-ip).  
+_Note_ that this process differs for the Nvidia Jetson Nano, which can be found [below](#assign-static-ip). Reboot and run `hostname -I` to cofirm the changes.
+
+### Install Docker
+
+Docker needs to be installed in order to run the K3s install script. Perform the following:  
+
+```shell
+sudo apt upgrade
+sudo apt update -y
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+```
+
+In order to run Docker as a non-root user you must add the current user to the Docker group with `sudo usermod -aG docker $USER`
+
+
 ### SSH
 
 It is good practice to disable username/password SSH login, this is done by editing `sudo nano /etc/ssh/sshd_config`, as so:  
@@ -266,37 +282,29 @@ helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
 helm repo add jetstack https://charts.jetstack.io
 ```
 
-### Install Dashboard
+## Dashboard
+
+There is a default Kubernetes dashboard that we will be deploying; the dashboard is a web-based Kubernetes user interface. You can use Dashboard to deploy containerized applications to a Kubernetes cluster, troubleshoot your containerized application, and manage the cluster resources. The dashboard also provides information on the state of Kubernetes resources in your cluster and on any errors that may have occurred.
+
+### Deploying the Dashboard UI
 
 ```shell
 # this is necessary to address https://github.com/rancher/k3s/issues/1126 for now:
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml >> ~/.bashrc
 source ~/.bashrc
-
-# make sure that we install the dashboard in the kube-system namespace:
-sudo kubectl config set-context --current --namespace=kube-system
-
-# install the dashboard, note how we explicitly ask for the Arm version:
-helm install kdash stable/kubernetes-dashboard \
-    --set=image.repository=k8s.gcr.io/kubernetes-dashboard-arm64
-
-# wait until you see the pod in 'Running' state:
-watch kubectl get pods -l "app=kubernetes-dashboard,release=kdash"
 ```
+
+I made some slight changes to the [official manifests](https://raw.githubusercontent.com/kubernetes/dashboard/v2.3.1/aio/deploy/recommended.yaml) that Kubernetes provides (changed the service type, created a user/service account and cluster role bindings), which can be found [here](manifests/dashboard.yaml). Apply them: `kubectl apply -f https://raw.githubusercontent.com/mkm29/ai-on-the-edge/main/manifests/dashboard.yaml`.
 
 ### Access Dashboard
 
-The dashboard is then available at: `https://localhost:10443/`. In order to login you must either grab the Kube config file or use a token. Since I would like to be able to issue remote `kubectl` and `helm` commands I will copy over the config file, as sp:
-
-  1. Copy the content of `/etc/rancher/k3s/k3s.yaml` and paste it into a file on your host machine, for example, `k3s-rpi.yaml`  
-  2. Change the line server: `https://127.0.0.1:6443` to server: `https://k3s-master:6443` (or server: `https://192.168.0.100:6443` if you haven’t updated your /etc/hosts file ;)  
-  3. Now you can access the cluster like so: `kubectl --kubeconfig=./k3s-rpi.yaml` get nodes  
+Currently the service is being exposed as a `NodePort` service, which can be accessed at [https://cluster.smigula.io:30000](https://cluster.smigula.io). In order to login, you first need to get a Bearer token from Kubernetes:  
 
 ```shell
-kubectl --insecure-skip-tls-verify --kubeconfig=./k3s-rpi.yaml port-forward \
-    --namespace kube-system \
-    svc/kdash-kubernetes-dashboard 10443:443
+kubectl -n kubernetes-dashboard get secret $(kubectl -n kubernetes-dashboard get sa/admin-user -o jsonpath="{.secrets[0].name}") -o go-template="{{.data.token | base64decode}}"
 ```
+
+_Note_ that due to me using CloudFlare as free DDNS, there will be a TLS/cert issue. If you deploy this locally with no DDNS you should not run into this issue.
 
 ## Workers
 
@@ -312,7 +320,8 @@ kubectl --insecure-skip-tls-verify --kubeconfig=./k3s-rpi.yaml port-forward \
 ### Install Agent
 
 ```shell
-curl -sfL https://get.k3s.io | K3S_URL=https://192.168.0.100:6443 K3S_TOKEN=<TOKEN> \
+export TOKEN=K10513ec520ffb7ce3d94da39d5a26be5da9324769f035498595c9941d21bcfeb62::server:ed7aefd846db06468a6c78fb91d461d2
+curl -sfL https://get.k3s.io | K3S_URL=https://192.168.0.100:6443 K3S_TOKEN=$TOKEN \
   INSTALL_KUBE_EXEC="--node-label memory=high" sh -
 ```
 
