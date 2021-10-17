@@ -320,7 +320,7 @@ _Note_ that due to me using CloudFlare as free DDNS, there will be a TLS/cert is
 ### Install Agent
 
 ```shell
-export TOKEN=K10513ec520ffb7ce3d94da39d5a26be5da9324769f035498595c9941d21bcfeb62::server:ed7aefd846db06468a6c78fb91d461d2
+export TOKEN=<TOKEN>
 curl -sfL https://get.k3s.io | K3S_URL=https://192.168.0.100:6443 K3S_TOKEN=$TOKEN \
   INSTALL_KUBE_EXEC="--node-label memory=high" sh -
 ```
