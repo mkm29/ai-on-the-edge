@@ -90,6 +90,7 @@ sudo dd if=/dev/zero of=/mnt/storage/speedTestFile bs=20M count=5 oflag=direct #
 |---------|-------------|--------------|
 | SD Card |    39.7     |    19.3      |
 |   SSD   |   280.0     |   221.0      |
+|   m.2   |   343.0     |   215.0      |
 
 ## Prerequisites
 
