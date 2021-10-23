@@ -37,7 +37,8 @@ Date: 2021-10-09
     5. [Container Configuration](#container-configuration)
     6. [Test GPU Support](#test-gpu-support)
     7. [PyTorch](#pytorch)
-    8. [GAN](#gan)
+    8. [GAN](#gan)  
+11. [IdP](#idp)  
 
 ## Introduction  
 
@@ -240,10 +241,17 @@ While we are booting off an SD card (class 10), we wish to leverage the higher r
 
 ## Install K3s
 
+This installation assumes that you have a Keycloak (IdP) server deployed to handle user auth (the `--kube-apiserver-arg` flags).  
+
 ```shell
-curl -sfL https://get.k3s.io | INSTALL_KUBE_EXEC="--write-kubeconfig-mode 664 \
+curl -sfL https://get.k3s.io | INSTALL_KUBE_EXEC="--write-kubeconfig-mode 0664 \
 --bind-address 192.168.0.100 --advertise-address 192.168.0.100 \
---default-local-storage-path /mnt/storage --cluster-init --node-label memory=high" sh -
+--default-local-storage-path /mnt/storage --cluster-init --node-label memory=high \
+--kube-apiserver-arg oidc-issuer-url=https://sso.smigula.io/auth/realms/k3s \
+--kube-apiserver-arg oidc-client-id=k3s \
+--kube-apiserver-arg oidc-username-claim=email \
+--kube-apiserver-arg oidc-groups-claim=groups
+" sh -
 ```
 
 _Note_: Here I add the `memory` label to each node, as this cluster will be comprised of 8gb, 4gb and 2gb nodes.  
@@ -334,7 +342,7 @@ Create the file `/etc/rancher/k3s/registries.yaml`, and add the following to it:
 mirrors:
   "docker.io":
     endpoint:
-      - "https://docker.io"
+  "https://docker.io"
 configs:
   "docker.io":
     auth:
@@ -526,3 +534,7 @@ If all works correctly you should see `True` printed out. This just shows how to
 ### GAN
 
 That is not an actual application though, stand by and I will deploy a little GAN application using PyTorch and Flask :)  
+
+### IdP  
+
+For this we will deploy a Keycloak instance to our cluster, see [Keycloak](keycloak.md) instructions.
