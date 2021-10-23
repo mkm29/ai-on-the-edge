@@ -29,7 +29,8 @@ Date: 2021-10-09
     1. [Worker 1](#worker-1)
     2. [Install Agent](#install-agent)
 9. [Add Private Registry](#add-private-registry)
-10. [GPU Support](#gpu-support)
+10. [cert-manager](#cert-manager)
+11. [GPU Support](#gpu-support)
     1. [Swap](#swap)
     2. [Disable IPv6](#disable-ipv6)
     3. [Assign Static IP](#assign-static-ip)
@@ -38,7 +39,8 @@ Date: 2021-10-09
     6. [Test GPU Support](#test-gpu-support)
     7. [PyTorch](#pytorch)
     8. [GAN](#gan)  
-11. [IdP](#idp)  
+12. [IdP](#idp)  
+13. [Traefik](#traefik)  
 
 ## Introduction  
 
@@ -354,6 +356,10 @@ configs:
 
 _Note_: you will need to do this for all worker nodes. Can this be added to the `/etc/rancher/k3s/nodes/` as an Ansible playbook?
 
+## cert-manager
+
+Here we will deploy cert-manager on K3s and configure it with the Traefik Ingress Controller to enable TLS. This is based off this [guide](https://bryanbende.com/development/2021/07/01/k3s-raspberry-pi-cert-manager).  
+
 ## GPU Support
 
 This section will cover what is needed to configure a node (eg Nvidia Jetson Nano) to give containers access to a GPU.
@@ -538,3 +544,7 @@ That is not an actual application though, stand by and I will deploy a little GA
 ### IdP  
 
 For this we will deploy a Keycloak instance to our cluster, see [Keycloak](keycloak.md) instructions.
+
+### Traefik
+
+Consult this [guide](traefik.md) for various Traefik configuration items.
