@@ -41,6 +41,9 @@ Date: 2021-10-09
     8. [GAN](#gan)  
 12. [IdP](#idp)  
 13. [Traefik](#traefik)  
+14. [cert-manager](#cert-manager)  
+    1. [lets-encrypt](#lets-encrypt)  
+15. [Kube Media Server](#kube-media-server]
 
 ## Introduction  
 
@@ -547,4 +550,16 @@ For this we will deploy a Keycloak instance to our cluster, see [Keycloak](keycl
 
 ### Traefik
 
-Consult this [guide](traefik.md) for various Traefik configuration items.
+Consult this [guide](traefik.md) for various Traefik configuration items.  
+
+### cert-manager  
+
+Tutorial to follow.  
+
+#### lets-encrypt  
+
+Tutorial to follow.  
+
+### Kube Media Server  
+
+See [guide](media-server.md) on setting up a completely automated media server on K3s, using Sonarr, Radarr, Jackett, Transmission, OpenVPN and Plex.
