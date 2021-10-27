@@ -43,7 +43,7 @@ Date: 2021-10-09
 13. [Traefik](#traefik)  
 14. [cert-manager](#cert-manager)  
     1. [lets-encrypt](#lets-encrypt)  
-15. [Kube Media Server](#kube-media-server]
+15. [Kube Media Server](#kube-media-server)
 
 ## Introduction  
 
