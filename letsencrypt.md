@@ -1,5 +1,7 @@
 # Let's Encrypt
 
+In order for this to work, you must install `cert-manager`, otherwise the cluster will not have any of these resources. 
+
 ## Create Cluster Issuer
 
 ### Staging  
@@ -40,7 +42,22 @@ spec:
           class: traefik
 ```
 
-Apply these to your cluster (they will live in the default namespace). Once created you are ready to protect Ingress routes! This is an example of the `Ingress` that I created for my instance of Keycloak. The basic idea is that you need to specify a few annotations that will alert the mutating admission controller to reach out to Let's Encrypt, procure the TLS cert and then store it in a secret (in the same namespace as the Ingress resource)
+## Redirect HTTP
+
+```yaml
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+name: redirect-https
+  namespace: default
+spec:
+  redirectScheme:
+    permanent: true
+    scheme: https
+```
+
+## Ingress
+
+Apply these to your cluster (they will live in the default namespace). Once created you are ready to protect Ingress routes! This is an example of the `Ingress` that I created for my instance of Keycloak. The basic idea is that you need to specify a few annotations that will alert the mutating admission controller to reach out to Let's Encrypt, procure the TLS cert and then store it in a secret (in the same namespace as the Ingress resource). _Note_: in order to complete the ACME HTTP challenge you must not put the redirect annotations in the `Ingress` resource until after the challenge completes and the TLS secret is created.
 
 ```yaml
 apiVersion: networking.k8s.io/v1
