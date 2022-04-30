@@ -38,7 +38,7 @@ First lets install the popular, open-source BitTorrent client Transmission. Firs
 ```shell
 kubectl create secret generic openvpn \
     --from-literal='username=mitch.murphy@gmail.com' \
-    --from-literal='password=Mitch%*%363502' \
+    --from-literal='password=redacted' \
     --namespace media
 ```
 
