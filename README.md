@@ -64,6 +64,10 @@ This is a pretty cost effective cluster (for the computational power at least), 
 * 1 x [NETGEAR Ethernet Switch](https://www.amazon.com/gp/product/B07PFYM5MZ) - $19.99
 * 1 x [Raspberry Pi Cluster Case](https://www.amazon.com/gp/product/B08FH3V6GV) - $84.99
 
+**Update**
+
+I currently use this cluster [case](https://www.amazon.com/gp/product/B0844YSJWB?th=1) - $89.99, as well as these `m.2` [drives](https://www.amazon.com/gp/product/B09QV692XY) - $59.99
+
 _Notes_:  
 
 That the Nvidia Jetson Nano was only $99.99 when I bought it, the same model with 4GB of RAM is now 169.99, there is a 2GB version on [Amazon](https://www.amazon.com/NVIDIA-Jetson-Nano-Developer-945-13541-0000-000/dp/B08J157LHH) for $59.00. Furthermore, I have decided to attach separate storage volumes (SSD) to each node, this is for two reasons: I would like to run a full media server on the cluster and ML/AI workloads are data intensive and read/write speeds on SD cards are not great. Both of these are completely optional.
