@@ -55,18 +55,16 @@ This is a pretty cost effective cluster (for the computational power at least), 
 
 * 2 x [Raspberry Pi 4 Model B - 8GB](https://www.cytron.io/p-raspberry-pi-4-model-b-8gb) - $87.25
 * 2 x [Raspberry Pi 4 Model B - 4GB](https://www.cytron.io/p-raspberry-pi-4-model-b-4gb) - $59.75
-* 1 x [Nvidia Jetson Nano 4GB](https://www.amazon.com/NVIDIA-Jetson-Nano-Developer-945-13450-0000-100/dp/B084DSDDLT) - $169.99
-* 4 x [Crucial MX500 500GB SSD](https://www.amazon.com/gp/product/B0786QNS9B) - $54.99
-* 4 x [SATA/SSD to USB Adapter](https://www.amazon.com/gp/product/B011M8YACM) - $9.99
+* 1 x [Nvidia Jetson Nano 4GB](https://www.amazon.com/NVIDIA-Jetson-Nano-Developer-945-13450-0000-100/dp/B084DSDDLT) - $149.00
+* 4 x [WD_BLACK 1TB NVMe m.2](https://www.amazon.com/gp/product/B09QV692XY) - $59.99
+* 4 x [m.2 SATA to USB Adapter](https://www.amazon.com/gp/product/B076DCNZM3) - $14.99
 * 1 x [1ft USB C Cables, 5 pack](https://www.amazon.com/gp/product/B08LH5SX4V/) - $8.99
 * 1 x [USB Charging Station - 60W, 12A](https://www.amazon.com/gp/product/B08HN6JK7N) - $27.99
 * 1 x [1ft CAT 6 Cables, 5 pack](https://www.amazon.com/gp/product/B00C4U030G) - $10.99
 * 1 x [NETGEAR Ethernet Switch](https://www.amazon.com/gp/product/B07PFYM5MZ) - $19.99
-* 1 x [Raspberry Pi Cluster Case](https://www.amazon.com/gp/product/B08FH3V6GV) - $84.99
+* 1 x [Raspberry Pi Cluster Case](https://www.amazon.com/gp/product/B0844YSJWB) - $89.99
+* 4 x m.2 SATA to USB [adapter+enclosure](https://www.amazon.com/gp/product/B076DCNZM3) - $14.99
 
-**Update**
-
-I currently use this cluster [case](https://www.amazon.com/gp/product/B0844YSJWB?th=1) - $89.99, as well as these `m.2` [drives](https://www.amazon.com/gp/product/B09QV692XY) - $59.99
 
 _Notes_:  
 
